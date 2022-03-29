@@ -1,0 +1,4 @@
+/.idea
+/telegram_bot.egg-info
+/telegram_bot/main/main.egg-info
+/telegram_bot/auth_bot/auth_bot.egg-info
