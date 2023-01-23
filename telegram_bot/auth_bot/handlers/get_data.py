@@ -1,8 +1,8 @@
 from aiogram import types
-from misc import dp, bot, config
+from telegram_bot.auth_bot.misc import dp, bot, config
 from telegram_bot.utils.variables import tg_accounts
 from telegram_bot.utils.db import User, session, TelegramAccount
-from keyboards.inline import add_proxy_menu, submit_account
+from telegram_bot.auth_bot.keyboards.inline import add_proxy_menu, submit_account
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from sqlalchemy.exc import IntegrityError, PendingRollbackError
@@ -45,8 +45,13 @@ async def set_proxy(message: types.Message, state: FSMContext):
         await message.answer("Ввод отменен!")
 
     elif len(message.text.split("@")) == 2:
-        login_pass, ip_port = [x.split(":") for x in message.text.split("@")]  # парсим данные от прокси из строки
-        login, password, ip, port = login_pass + ip_port
+        login, password, ip, port = (None, None, None, None)
+        try:
+            login_pass, ip_port = [x.split(":") for x in message.text.split("@")]  # парсим данные от прокси из строки
+            login, password, ip, port = login_pass + ip_port
+        except ValueError:
+            await message.answer("❕ Введите прокси в верном формате, либо напишите <b>Отмена</b>")
+            await TelegramAccountData.proxy.set()
 
         await state.update_data(login=login, password=password, ip=ip, port=port)
         user_data = await state.get_data()

@@ -192,3 +192,20 @@ class TgAccount:
         if chat_id not in self.sent_messages_ids:
             return True
         return False
+
+    async def check_chat_invite_request(self, invite):
+        result = await self.client(functions.messages.CheckChatInviteRequest(
+            hash=invite
+        ))
+        return result
+
+    async def join_chat(self, entity, is_private: bool = False):
+        if not is_private:
+            updates = await self.client(
+                functions.channels.JoinChannelRequest(entity)
+            )
+        else:
+            updates = await self.client(
+                functions.messages.ImportChatInviteRequest(entity)
+            )
+        return updates

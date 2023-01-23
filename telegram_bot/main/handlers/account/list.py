@@ -19,7 +19,7 @@ async def show_accounts(callback: types.CallbackQuery, state: FSMContext):
                                                                    service_name=callback.data.split(':')[1]))
 
 
-@dp.callback_query_handler(text_contains="list_tg_accounts:account")
+@dp.callback_query_handler(state="*", text_contains="list_tg_accounts:account")
 async def show_account_settings(callback: types.CallbackQuery, state: FSMContext):
     await state.finish()
     await state.reset_data()

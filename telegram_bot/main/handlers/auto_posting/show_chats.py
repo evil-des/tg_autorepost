@@ -21,7 +21,10 @@ async def show_account_settings_chats(callback: types.CallbackQuery, state: FSMC
 
     current_page = 0
     pages_num = len(chats) // CHATS_LIMIT
-    await state.update_data(current_page=current_page, pages_num=pages_num, chats=chats, account_id=account_id)
+    await state.update_data(current_page=current_page,
+                            pages_num=pages_num,
+                            chats=chats,
+                            account_id=account_id)
 
     page_info = {
         'current_page': current_page,
@@ -29,12 +32,13 @@ async def show_account_settings_chats(callback: types.CallbackQuery, state: FSMC
     }
 
     try:
-        await callback.message.edit_reply_markup(reply_markup=list_account_functions(callback.data.split(":")[-1],
-                                                                                     service_name=
-                                                                                     callback.data.split(':')[1],
-                                                                                     chats=chats[
-                                                                                           current_page:CHATS_LIMIT],
-                                                                                     page_info=page_info))
+        await callback.message.edit_reply_markup(
+            reply_markup=list_account_functions(callback.data.split(":")[-1],
+                                                service_name=callback.data.split(':')[1],
+                                                chats=chats[
+                                                      current_page:CHATS_LIMIT],
+                                                page_info=page_info)
+        )
     except MessageNotModified:
         if not chats:
             await callback.answer("⚠️ Диалоги не найдены!")
@@ -67,7 +71,8 @@ async def show_account_settings_chats_nav(callback: types.CallbackQuery, state: 
             await callback.message.edit_reply_markup(reply_markup=list_account_functions(user_data.get('account_id'),
                                                                                          service_name=
                                                                                          callback.data.split(':')[1],
-                                                                                         chats=chats[current_page * CHATS_LIMIT:CHATS_LIMIT],
+                                                                                         chats=chats[
+                                                                                               current_page * CHATS_LIMIT:CHATS_LIMIT],
                                                                                          page_info=page_info))
         except MessageNotModified:
             if not chats:

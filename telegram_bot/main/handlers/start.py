@@ -7,7 +7,7 @@ from aiogram.dispatcher import FSMContext
 from sqlalchemy.exc import IntegrityError, PendingRollbackError
 
 
-@dp.message_handler(commands=['start'])
+@dp.message_handler(state="*", commands=['start'])
 async def start(message: types.Message, state: FSMContext, is_editable_msg=False):
     await state.finish()
     await state.reset_data()

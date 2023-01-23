@@ -1,6 +1,6 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from misc import dp, bot, config
+from telegram_bot.auth_bot.misc import dp, bot, config
 from telegram_bot.utils.db import User, session
 from aiogram.dispatcher import FSMContext
 from .get_data import TelegramAccountData
