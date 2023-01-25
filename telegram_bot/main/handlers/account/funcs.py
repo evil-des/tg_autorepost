@@ -28,7 +28,7 @@ async def delete_account_question(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text_contains="delete_account:yes")
-async def delete_account_submit(callback: types.CallbackQuery):
+async def delete_account_submit(callback: types.CallbackQuery, state: FSMContext):
     account_id = callback.data.split(':')[-1]
     account = TelegramAccount.query.filter(TelegramAccount.id == account_id).first()
 
@@ -39,7 +39,7 @@ async def delete_account_submit(callback: types.CallbackQuery):
         session.rollback()
 
     await callback.answer("Аккаунт успешно удален!")
-    await start(callback.message, is_editable_msg=True)
+    await start(callback.message, is_editable_msg=True, state=state)
 
 
 @dp.callback_query_handler(text_contains="delete_account:cancel")

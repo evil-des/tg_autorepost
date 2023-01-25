@@ -56,7 +56,10 @@ async def show_account_settings(callback: types.CallbackQuery, state: FSMContext
     #                                                                                current_page * CHATS_LIMIT:CHATS_LIMIT],
     #                                                                          page_info=page_info
     #                                                                          ))
-    await callback.message.edit_text(msg_text, reply_markup=list_account_functions(account_id, service_name=service))
+    await callback.message.edit_text(msg_text,
+                                     reply_markup=list_account_functions(account_id,
+                                                                         service_name=service)
+                                     )
 
 
 @dp.callback_query_handler(text_contains="list_tg_accounts:back")
