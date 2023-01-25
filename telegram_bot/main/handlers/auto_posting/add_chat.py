@@ -26,6 +26,12 @@ async def add_chat_manually(callback: types.CallbackQuery, state: FSMContext):
 
 @dp.message_handler(state=AddChat.add_link)
 async def add_link(message: types.Message, state: FSMContext):
+    status, is_private = False, False
+
+    if message.text.strip().lower() == "отмена":
+        await start(message, state)
+        return
+
     if message.text.startswith("https://t.me/"):
         link_parts = message.text[8:].split("/")
 
@@ -35,7 +41,6 @@ async def add_link(message: types.Message, state: FSMContext):
         await account.auth()
 
         entity = link_parts[-1]
-        status, is_private = False, False
 
         if len(link_parts) == 3 or \
                 (len(link_parts) == 2 and "+" in entity):  # t.me/joinchat/<hash> -> 3 parts
@@ -53,3 +58,10 @@ async def add_link(message: types.Message, state: FSMContext):
                 await message.answer("Произошла ошибка при обработке запроса. "
                                      "Отправьте новую ссылку, либо напишите Отмена:")
                 await AddChat.add_link.set()
+            return
+
+    if not status:
+        await message.answer("Ссылка имеет неверный формат! "
+                             "Отправьте ссылку в формате – <code>https://t.me/[joinchat]/chat</code>, "
+                             "либо напишите <b>Отмена</b>:")
+        await AddChat.add_link.set()
