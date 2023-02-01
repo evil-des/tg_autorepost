@@ -9,6 +9,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from sqlalchemy.exc import IntegrityError, PendingRollbackError
 from .mode import posting_settings, PostingMode
 import datetime
+from telegram_bot.main.handlers.auto_posting.mode import choose_posting_mode
 
 
 @dp.callback_query_handler(state=PostingMode.posting_settings, text_contains="posting_settings:pin")
@@ -103,6 +104,14 @@ async def settings_set_time(message: types.Message, state: FSMContext):
         session.commit()
         await PostingMode.posting_settings.set()
         await posting_settings(message, state)
+
+
+@dp.callback_query_handler(state=PostingMode.posting_settings, text_contains="posting_settings:source")
+async def settings_change_source(callback: types.CallbackQuery, state: FSMContext):
+    config_ = PostingConfig.query.filter(PostingConfig.id == callback.data.split(":")[-1]).first()
+    account = TelegramAccount.query.filter(TelegramAccount.id == int(callback.data.split(":")[-2])).first()
+    await state.update_data(config=config_, account=account)
+    await choose_posting_mode(callback, state, is_change_source=True)
 
 
 def is_valid_date(date: str):

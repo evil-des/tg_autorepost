@@ -62,12 +62,12 @@ async def show_account_settings(callback: types.CallbackQuery, state: FSMContext
                                      )
 
 
-@dp.callback_query_handler(text_contains="list_tg_accounts:back")
+@dp.callback_query_handler(state="*", text_contains="list_tg_accounts:back")
 async def back(callback: types.CallbackQuery, state: FSMContext):
     await start(callback.message, state=state, is_editable_msg=True)
 
 
-@dp.callback_query_handler(text=["list_account_functions:auto_posting:back",
-                                 "list_account_functions:auto_answering:back"])
+@dp.callback_query_handler(state="*", text=["list_account_functions:auto_posting:back",
+                                            "list_account_functions:auto_answering:back"])
 async def back(callback: types.CallbackQuery, state: FSMContext):
     await show_accounts(callback, state)

@@ -36,7 +36,8 @@ class TgAccount:
         else:
             # TODO proxy auth
             # connection=connection.ConnectionTcpMTProxyRandomizedIntermediate,
-            self.client = TelegramClient(str(self.phone), config['auth_bot']['app_id'], config['auth_bot']['api_hash'])
+            self.client = TelegramClient(str(self.phone), int(config['auth_bot']['app_id']),
+                                         config['auth_bot']['api_hash'])
 
         tg_accounts[self.id] = self
 

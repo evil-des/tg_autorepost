@@ -142,12 +142,14 @@ def submit_delete_account(account_id):
     return keyboard
 
 
-def choose_posting_mode_kb(service_name, account_id=None, chat_id=None):
+def choose_posting_mode_kb(service_name, account_id=None, chat_id=0, is_multi_settings=0):
     keyboard = types.InlineKeyboardMarkup(row_width=2)
 
     keyboard.add(
-        types.InlineKeyboardButton('Из избранного', callback_data=f"choose_posting_mode:favorite:{chat_id}:{account_id}"),
-        types.InlineKeyboardButton('Из канала/чата', callback_data=f"choose_posting_mode:manual:{chat_id}:{account_id}"),
+        types.InlineKeyboardButton('Из избранного', callback_data=f"choose_posting_mode:favorite:{chat_id}:"
+                                                                  f"{account_id}:{is_multi_settings}"),
+        types.InlineKeyboardButton('Из канала/чата', callback_data=f"choose_posting_mode:manual:{chat_id}:"
+                                                                   f"{account_id}:{is_multi_settings}"),
         types.InlineKeyboardButton('🔙 Назад', callback_data=f"list_tg_accounts:account:{service_name}:{account_id}")
     )
 
@@ -165,7 +167,7 @@ def submit_post_kb(channel_id, post_id, account_id):
     return keyboard
 
 
-def posting_settings_kb(account_id, config_):
+def posting_settings_kb(account_id, config_, is_another_back_btn=False):
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     buttons = [
         {'title': f'Отправлять периодически', 'c_back': f"schedule:minutes"},
@@ -173,7 +175,7 @@ def posting_settings_kb(account_id, config_):
         {'title': f'{"✅" if config_.pin else "❌"} Отправка с закреплением', 'c_back': f"pin"},
         {'title': f'{"✅" if config_.notification else "❌"} Отправка с уведомлением', 'c_back': f"notification"},
         {'title': f'Удалить', 'c_back': f"delete"},
-        {'title': '⬅️ Назад', 'c_back': f"back"}
+        {'title': f'Изменить источник', 'c_back': f"source"}
     ]
 
     keyboard.add(
@@ -181,4 +183,14 @@ def posting_settings_kb(account_id, config_):
                                      callback_data=f"posting_settings:{button['c_back']}:{account_id}:{config_.id}")
           for button in buttons]
     )
+
+    if is_another_back_btn:
+        back_button_callback = f"list_tg_accounts:account:auto_posting:{account_id}"
+    else:
+        back_button_callback = "back"
+
+    keyboard.add(
+        types.InlineKeyboardButton('⬅️ Назад', callback_data=back_button_callback)
+    )
+
     return keyboard

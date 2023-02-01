@@ -13,7 +13,7 @@ engine = create_engine(
 )
 
 
-session = scoped_session(sessionmaker(bind=engine))
+session = scoped_session(sessionmaker(bind=engine, expire_on_commit=False))
 Base = declarative_base()
 Base.query = session.query_property()
 
@@ -66,6 +66,7 @@ class MultiSettings(Base):
     account_id = Column(Integer)
 
     mode = Column(String)
+    chat_id = Column(BigInteger)
     channel_id = Column(BigInteger)
     message_id = Column(BigInteger)
     pin = Column(Boolean, default=False)
