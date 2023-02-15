@@ -4,7 +4,9 @@ from telegram_bot.utils.variables import tg_accounts
 import logging
 from telethon import functions
 import asyncio
-from telegram_bot.utils.db import TelegramAccount
+from telegram_bot.utils.db import TelegramAccount, User, session as session_db
+from telethon.errors import rpcerrorlist
+from telegram_bot.main.misc import bot
 
 config = ConfigParser()
 config.read('config/config.ini', encoding="utf8")
@@ -12,7 +14,7 @@ config.read('config/config.ini', encoding="utf8")
 
 class TgAccount:
     def __init__(self, phone=None, proxy=None):
-        # self.user = User.query.filter(User.chat_id == chat_id).first()
+        self.account_db = TelegramAccount.query.filter(TelegramAccount.phone == phone).first()
         self.id = len(tg_accounts) + 1
 
         self.phone = phone
@@ -41,6 +43,25 @@ class TgAccount:
 
         tg_accounts[self.id] = self
 
+    def check_account(func):
+        async def wrapper(self, *args, **kwargs):
+            try:
+                res = await func(self, *args, **kwargs)
+                return res
+            except rpcerrorlist.AuthKeyUnregisteredError:
+                if self.account_db:
+                    session_db.delete(self.account_db)
+                    session_db.commit()
+
+                    await bot.send_message(self.account_db.user.chat_id,
+                                           "Ваш аккаунт заблокирован, либо истек срок сессии.\n"
+                                           "Пройдите процесс авторизации повторно!")
+
+                logging.error("Error while authorizing in account!")
+                return None
+
+        return wrapper
+
     def get_phone(self) -> str:
         """
         Получить поле Phone
@@ -48,6 +69,7 @@ class TgAccount:
         """
         return str(self.phone)
 
+    @check_account
     async def get_message(self, chat_id, message_id):
         message = await self.client.get_messages(chat_id, message_id)
         return message
@@ -65,12 +87,14 @@ class TgAccount:
         except Exception as e:
             return None
 
+    @check_account
     async def forward_message(self, entity, from_peer, message_id, pin=False, notification=True):
         # await self.client.send_message(chat, message)
         await self.client.forward_messages(entity=entity, messages=message_id, from_peer=from_peer, silent=notification)
         if pin:
             await self.client.pin_message(entity, message_id, notify=notification)
 
+    @check_account
     async def auth(self, code=None, password=None) -> None:
         """
         Авторизовать аккаунт
@@ -90,6 +114,7 @@ class TgAccount:
         else:
             await self.client.sign_in(self.phone)
 
+    @check_account
     async def send_code_request(self) -> None:
         """
         Отрпавить код для авторизации
@@ -98,6 +123,7 @@ class TgAccount:
         await self.connect()
         await self.client.send_code_request(self.phone)
 
+    @check_account
     async def get_user_info(self) -> dict:
         """
         Получить информацию об аккаунте
@@ -113,6 +139,7 @@ class TgAccount:
             }
         return self.user_info
 
+    @check_account
     async def connect(self) -> None:
         """
         Подключить аккаунт к серверам Telegram
@@ -124,6 +151,7 @@ class TgAccount:
             except Exception as e:
                 await self.auth()
 
+    @check_account
     async def disconnect(self) -> None:
         """
         Отключить аккаунт от серверов Telegram
@@ -132,6 +160,7 @@ class TgAccount:
         if self.client.is_connected():
             await self.client.disconnect()
 
+    @check_account
     async def get_chats(self) -> list:
         """
         Получить список всех диалогов аккаунта
@@ -148,6 +177,7 @@ class TgAccount:
         await self.client.disconnect()
         del tg_accounts[self.id]
 
+    @check_account
     async def start_auto_answering(self) -> None:
         """
         Начать работу автоответчика
@@ -159,6 +189,7 @@ class TgAccount:
             await self.connect()
             self.auto_answering = asyncio.create_task(self.client.run_until_disconnected())
 
+    @check_account
     async def stop_auto_answering(self) -> None:
         """
         Остановить работу автоответчика
@@ -169,12 +200,14 @@ class TgAccount:
             self.auto_answering.cancel()
             logging.debug(f'Stopped auto_answering for [{self.id}] account')
 
+    @check_account
     async def new_message(self, event: events.newmessage.NewMessage.Event) -> None:
         """
         Обработчик новых входящих сообщений
         :param event:
         :return: None
         """
+        # TODO logging
         account = TelegramAccount.query.filter(TelegramAccount.phone == self.phone).first()
         if await self.is_new_chat(event.chat_id):
             await event.reply(account.answering_text)
@@ -194,12 +227,14 @@ class TgAccount:
             return True
         return False
 
+    @check_account
     async def check_chat_invite_request(self, invite):
         result = await self.client(functions.messages.CheckChatInviteRequest(
             hash=invite
         ))
         return result
 
+    @check_account
     async def join_chat(self, entity, is_private: bool = False):
         if not is_private:
             updates = await self.client(

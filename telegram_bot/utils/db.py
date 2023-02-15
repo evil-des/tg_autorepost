@@ -1,6 +1,6 @@
-from sqlalchemy import Column, DateTime, String, Integer, create_engine, Float, Boolean, BigInteger
+from sqlalchemy import Column, DateTime, String, Integer, create_engine, Float, Boolean, BigInteger, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker,scoped_session
+from sqlalchemy.orm import sessionmaker, scoped_session, relationship
 import datetime
 from configparser import ConfigParser
 
@@ -24,13 +24,24 @@ class User(Base):
     chat_id = Column(BigInteger, unique=True)
     username = Column(String)
     fullname = Column(String)
+    telegram_accounts = relationship("TelegramAccount", back_populates="user")
     date_join = Column(DateTime, default=datetime.datetime.now())
+
+
+# class LoggingUser:
+#     __tablename__ = 'logging_users'
+#     id = Column(Integer, primary_key=True)
+#     user_id = Column(Integer)
+#     status = Column(Boolean, default=1)
+#     date_join = Column(DateTime, default=datetime.datetime.now())
 
 
 class TelegramAccount(Base):
     __tablename__ = 'telegram_accounts'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer)
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User")
 
     chat_id = Column(BigInteger, unique=True)
     phone = Column(String, unique=True)

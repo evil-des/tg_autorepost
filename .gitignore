@@ -3,8 +3,10 @@
 /telegram_bot/main/main.egg-info
 /telegram_bot/auth_bot/auth_bot.egg-info
 /telegram_bot/*.session
-*/config/config.ini
-#!*/config/config.example.ini
+/telegram_bot/config/config.ini
+!*/config/config.example.ini
+*/config.ini
+config.ini
 *.db
 database.db
 *.sqlite
