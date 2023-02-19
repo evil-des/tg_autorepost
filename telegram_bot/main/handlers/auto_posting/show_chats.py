@@ -23,7 +23,7 @@ async def show_account_settings_chats(callback: types.CallbackQuery, state: FSMC
     pages_num = len(chats) // CHATS_LIMIT
     await state.update_data(current_page=current_page,
                             pages_num=pages_num,
-                            chats=chats,
+                            # chats=chats,
                             account_id=account_id)
 
     page_info = {

@@ -21,6 +21,7 @@ class PostingMode(StatesGroup):
 
 @dp.callback_query_handler(state='*', text_contains="list_account_functions:auto_posting:multi_settings")
 async def multi_settings(callback: types.CallbackQuery, state: FSMContext):
+    # await state.reset_data()
     account_id = callback.data.split(":")[-1]
     await callback.message.edit_text('Выберите режим работы:',
                                      reply_markup=choose_posting_mode_kb("auto_posting", account_id,
@@ -117,7 +118,6 @@ async def submit_post_msg(message: types.Message, state: FSMContext):
 @dp.message_handler(state=PostingMode.posting_settings)
 async def posting_settings(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
-
     config_, account = await get_config_and_account(user_data)
     await add_message_source(user_data, config_, account, message)
     await state.update_data(config_id=config_.id)

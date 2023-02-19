@@ -7,6 +7,7 @@ import asyncio
 from telegram_bot.utils.db import TelegramAccount, User, session as session_db
 from telethon.errors import rpcerrorlist
 from telegram_bot.main.misc import bot
+from telebot import TeleBot
 
 config = ConfigParser()
 config.read('config/config.ini', encoding="utf8")
@@ -61,6 +62,17 @@ class TgAccount:
                 return None
 
         return wrapper
+
+    def get_logging_text(self, source, message,
+                         status=True, error=None, type_="posting"):
+        mode = "Автопостинг" if type_ == "posting" else "Автоответчик"
+        text = f"[{mode}] [+{self.account_db.phone}] - " \
+               f"Статус: {'Успешно' if status else 'Ошибка'}\n" \
+               f"Источник: <code>{source}</code>\n" \
+               f"Сообщение: <code>{message}</code>"
+        if not status:
+            text += "\n\nДетали:\n" + str(error)
+        return text
 
     def get_phone(self) -> str:
         """
@@ -207,10 +219,14 @@ class TgAccount:
         :param event:
         :return: None
         """
-        # TODO logging
+        logging_bot = TeleBot(config["log_bot"]["token"], parse_mode="html")
         account = TelegramAccount.query.filter(TelegramAccount.phone == self.phone).first()
         if await self.is_new_chat(event.chat_id):
             await event.reply(account.answering_text)
+            logging_bot.send_message(account.user.chat_id, self.get_logging_text(
+                message=account.answering_text,
+                source=str(event.chat_id)
+            ))
             self.sent_messages_ids.append(event.chat_id)
 
     async def is_new_chat(self, chat_id) -> bool:
